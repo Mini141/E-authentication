@@ -203,6 +203,21 @@
         <button class="send-otp-btn" onclick="sendOTP()">Send OTP</button>
         <div id="timer" class="timer"></div>
         <div id="statusMessage" class="status-message"></div>
+
+        <div id="otpInputContainer" style="margin-top: 20px; display: none;">
+            <input type="text" id="otpInput" 
+                style="padding: 10px; width: 200px; font-size: 1.2rem; text-align: center; 
+                letter-spacing: 5px; border: 2px solid #4CAF50; border-radius: 5px; 
+                margin-bottom: 10px;" 
+                maxlength="6" placeholder="Enter OTP"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button onclick="verifyOTP()" 
+                style="background-color: #4CAF50; color: white; padding: 12px 24px; 
+                border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; 
+                width: 100%; margin-top: 10px;">
+                Verify OTP
+            </button>
+        </div>
     </div>
 
     <script>
@@ -213,7 +228,36 @@
         })();
 
         function generateOTP() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            // Store OTP in session storage instead of local storage for better security
+            sessionStorage.setItem('currentOTP', otp);
+            return otp;
+        }
+
+        function verifyOTP() {
+            const enteredOTP = document.getElementById('otpInput').value;
+            const storedOTP = sessionStorage.getItem('currentOTP');
+            const statusMessage = document.getElementById('statusMessage');
+
+            if (!storedOTP) {
+                statusMessage.textContent = 'Please generate a new OTP first';
+                statusMessage.className = 'status-message error';
+                return;
+            }
+
+            if (enteredOTP === storedOTP) {
+                statusMessage.textContent = 'OTP verified successfully!';
+                statusMessage.className = 'status-message success';
+                // Clear the OTP after successful verification
+                sessionStorage.removeItem('currentOTP');
+                // Redirect to success page or perform next action
+                setTimeout(() => {
+                    window.location.href = 'success.html';
+                }, 1500);
+            } else {
+                statusMessage.textContent = 'Invalid OTP. Please try again.';
+                statusMessage.className = 'status-message error';
+            }
         }
 
         function updateTimer(seconds) {
@@ -260,6 +304,7 @@
         async function sendOTP() {
             const button = document.querySelector('.send-otp-btn');
             const statusMessage = document.getElementById('statusMessage');
+            const otpInputContainer = document.getElementById('otpInputContainer');
             
             try {
                 button.disabled = true;
@@ -272,10 +317,8 @@
                 const emailFromURL = urlParams.get('email');
 
                 if (emailFromURL) {
-                    // Use email from URL if available (QR code scan)
                     userEmail = emailFromURL;
                 } else {
-                    // Otherwise use Firebase authenticated user's email
                     await firebase.auth().currentUser.reload();
                     const user = firebase.auth().currentUser;
                     
@@ -306,12 +349,9 @@
                 console.log('Email sent successfully:', response);
                 statusMessage.textContent = 'OTP sent successfully to ' + userEmail;
                 statusMessage.className = 'status-message success';
-                localStorage.setItem('currentOTP', otp);
-
-                // Redirect to verify page after a short delay
-                setTimeout(() => {
-                    window.location.href = 'verify.html';
-                }, 1500);
+                
+                // Show OTP input field after sending
+                otpInputContainer.style.display = 'block';
 
                 let secondsLeft = 60;
                 updateTimer(secondsLeft);
