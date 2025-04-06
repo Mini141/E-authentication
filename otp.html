@@ -308,6 +308,11 @@
                 statusMessage.className = 'status-message success';
                 localStorage.setItem('currentOTP', otp);
 
+                // Redirect to verify page after a short delay
+                setTimeout(() => {
+                    window.location.href = 'verify.html';
+                }, 1500);
+
                 let secondsLeft = 60;
                 updateTimer(secondsLeft);
                 

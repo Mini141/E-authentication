@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        .header {
+            margin-bottom: 2rem;
+        }
+        .header i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+        .header h1 {
+            color: #333;
+            margin: 0.5rem 0;
+            font-size: 1.8rem;
+        }
+        .header p {
+            color: #666;
+            margin: 0.5rem 0;
+        }
+        .otp-input {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+        .otp-input input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+        .otp-input input:focus {
+            border-color: #4CAF50;
+        }
+        .verify-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .verify-btn:hover {
+            background-color: #45a049;
+        }
+        .verify-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .success {
+            color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        .error {
+            color: #f44336;
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+            .otp-input input {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-shield-alt"></i>
+            <h1>Verify OTP</h1>
+            <p>Enter the 6-digit code sent to your email</p>
+        </div>
+
+        <form id="verifyForm" onsubmit="verifyOTP(event)">
+            <div class="otp-input">
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+                <input type="text" maxlength="1" pattern="[0-9]" required>
+            </div>
+            <button type="submit" class="verify-btn">Verify OTP</button>
+        </form>
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        // Handle input fields
+        const inputs = document.querySelectorAll('.otp-input input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keyup', (e) => {
+                if (e.key >= '0' && e.key <= '9') {
+                    input.value = e.key;
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                    e.preventDefault();
+                } else if (e.key === 'Backspace') {
+                    input.value = '';
+                    if (index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Verify OTP
+        function verifyOTP(event) {
+            event.preventDefault();
+            
+            // Get entered OTP
+            const enteredOTP = Array.from(inputs).map(input => input.value).join('');
+            
+            // Get stored OTP
+            const storedOTP = localStorage.getItem('currentOTP');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            console.log('Entered OTP:', enteredOTP);
+            console.log('Stored OTP:', storedOTP);
+
+            if (enteredOTP === storedOTP) {
+                statusMessage.textContent = 'OTP verified successfully!';
+                statusMessage.className = 'status-message success';
+                
+                // Clear the stored OTP
+                localStorage.removeItem('currentOTP');
+                
+                // Redirect to success page after a short delay
+                setTimeout(() => {
+                    window.location.href = 'success.html';
+                }, 1500);
+            } else {
+                statusMessage.textContent = 'Invalid OTP. Please try again.';
+                statusMessage.className = 'status-message error';
+                
+                // Clear input fields
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+                inputs[0].focus();
+            }
+        }
+    </script>
+</body>
+</html> 
