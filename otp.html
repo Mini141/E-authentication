@@ -227,42 +227,32 @@
             console.log('EmailJS initialized with public key');
         })();
 
+        let currentOTP = null; // Global variable to store OTP
+
         function generateOTP() {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            // Store OTP in session storage instead of local storage for better security
-            sessionStorage.setItem('currentOTP', otp);
-            // Also store the OTP in URL for mobile access
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('sentOTP', otp);
-            window.history.replaceState({}, '', currentUrl);
+            currentOTP = otp; // Store in global variable
+            console.log('Generated and stored OTP:', otp);
             return otp;
         }
 
         function verifyOTP() {
             const enteredOTP = document.getElementById('otpInput').value;
-            // Get OTP from URL if on mobile, otherwise from session storage
-            const urlParams = new URLSearchParams(window.location.search);
-            const storedOTP = urlParams.get('sentOTP') || sessionStorage.getItem('currentOTP');
             const statusMessage = document.getElementById('statusMessage');
 
-            console.log('Entered OTP:', enteredOTP);
-            console.log('Stored OTP:', storedOTP);
+            console.log('Verifying - Entered OTP:', enteredOTP);
+            console.log('Verifying - Stored OTP:', currentOTP);
 
-            if (!storedOTP) {
+            if (!currentOTP) {
                 statusMessage.textContent = 'Please generate a new OTP first';
                 statusMessage.className = 'status-message error';
                 return;
             }
 
-            if (enteredOTP === storedOTP) {
+            if (enteredOTP === currentOTP) {
                 statusMessage.textContent = 'OTP verified successfully!';
                 statusMessage.className = 'status-message success';
-                // Clear the OTP after successful verification
-                sessionStorage.removeItem('currentOTP');
-                // Remove OTP from URL
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.delete('sentOTP');
-                window.history.replaceState({}, '', currentUrl);
+                currentOTP = null; // Clear the OTP after successful verification
                 // Redirect to success page or perform next action
                 setTimeout(() => {
                     window.location.href = 'success.html';
@@ -351,7 +341,7 @@
                 console.log('Sending OTP to:', userEmail);
 
                 const otp = generateOTP();
-                console.log('Generated OTP:', otp);
+                console.log('About to send OTP:', otp);
 
                 // Send email using EmailJS
                 const response = await emailjs.send(
