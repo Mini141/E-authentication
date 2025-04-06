@@ -197,27 +197,12 @@
             <h3><i class="fas fa-info-circle"></i> How it works:</h3>
             <p>1. Click the "Send OTP" button below</p>
             <p>2. You'll receive a 6-digit code on your registered email</p>
-            <p>3. Enter this code to complete verification</p>
+            <p>3. Check your email for the verification code</p>
         </div>
 
         <button class="send-otp-btn" onclick="sendOTP()">Send OTP</button>
         <div id="timer" class="timer"></div>
         <div id="statusMessage" class="status-message"></div>
-
-        <div id="otpInputContainer" style="margin-top: 20px; display: none;">
-            <input type="text" id="otpInput" 
-                style="padding: 10px; width: 200px; font-size: 1.2rem; text-align: center; 
-                letter-spacing: 5px; border: 2px solid #4CAF50; border-radius: 5px; 
-                margin-bottom: 10px;" 
-                maxlength="6" placeholder="Enter OTP"
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <button onclick="verifyOTP()" 
-                style="background-color: #4CAF50; color: white; padding: 12px 24px; 
-                border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; 
-                width: 100%; margin-top: 10px;">
-                Verify OTP
-            </button>
-        </div>
     </div>
 
     <script>
@@ -227,12 +212,9 @@
             console.log('EmailJS initialized with public key');
         })();
 
-        let currentOTP = null; // Global variable to store OTP
-
         function generateOTP() {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            currentOTP = otp; // Store in global variable
-            console.log('Generated and stored OTP:', otp);
+            console.log('Generated OTP:', otp);
             return otp;
         }
 
@@ -341,7 +323,7 @@
                 console.log('Sending OTP to:', userEmail);
 
                 const otp = generateOTP();
-                console.log('About to send OTP:', otp);
+                console.log('Generated OTP:', otp);
 
                 // Send email using EmailJS
                 const response = await emailjs.send(
