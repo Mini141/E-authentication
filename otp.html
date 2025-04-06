@@ -227,21 +227,34 @@
 
         // Check authentication state on load
         window.addEventListener('load', () => {
-            firebase.auth().onAuthStateChanged((user) => {
-                const statusMessage = document.getElementById('statusMessage');
-                if (user) {
-                    console.log('Currently logged in user:', user.email);
-                    document.querySelector('.send-otp-btn').disabled = false;
-                    // Display the current user's email on the page
-                    statusMessage.textContent = 'Logged in as: ' + user.email;
-                    statusMessage.className = 'status-message success';
-                } else {
-                    console.log('No user is authenticated');
-                    statusMessage.textContent = 'Please login first to receive OTP.';
-                    statusMessage.className = 'status-message error';
-                    document.querySelector('.send-otp-btn').disabled = true;
-                }
-            });
+            // Get email from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailFromURL = urlParams.get('email');
+            const statusMessage = document.getElementById('statusMessage');
+            const sendOTPBtn = document.querySelector('.send-otp-btn');
+
+            if (emailFromURL) {
+                // If email is provided in URL (QR code scan), enable direct OTP sending
+                console.log('Email from URL:', emailFromURL);
+                sendOTPBtn.disabled = false;
+                statusMessage.textContent = 'Ready to send OTP to: ' + emailFromURL;
+                statusMessage.className = 'status-message success';
+            } else {
+                // Check Firebase auth only if no email in URL
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        console.log('Currently logged in user:', user.email);
+                        sendOTPBtn.disabled = false;
+                        statusMessage.textContent = 'Logged in as: ' + user.email;
+                        statusMessage.className = 'status-message success';
+                    } else {
+                        console.log('No user is authenticated');
+                        statusMessage.textContent = 'Please login first to receive OTP.';
+                        statusMessage.className = 'status-message error';
+                        sendOTPBtn.disabled = true;
+                    }
+                });
+            }
         });
 
         async function sendOTP() {
@@ -253,16 +266,26 @@
                 statusMessage.textContent = 'Sending OTP...';
                 statusMessage.className = 'status-message';
 
-                // Force refresh the current user
-                await firebase.auth().currentUser.reload();
-                const user = firebase.auth().currentUser;
-                
-                if (!user || !user.email) {
-                    throw new Error('No authenticated user found. Please login again.');
+                let userEmail;
+                // Check URL parameters first
+                const urlParams = new URLSearchParams(window.location.search);
+                const emailFromURL = urlParams.get('email');
+
+                if (emailFromURL) {
+                    // Use email from URL if available (QR code scan)
+                    userEmail = emailFromURL;
+                } else {
+                    // Otherwise use Firebase authenticated user's email
+                    await firebase.auth().currentUser.reload();
+                    const user = firebase.auth().currentUser;
+                    
+                    if (!user || !user.email) {
+                        throw new Error('No authenticated user found. Please login again.');
+                    }
+                    userEmail = user.email;
                 }
 
-                const userEmail = user.email;
-                console.log('Sending OTP to current user:', userEmail);
+                console.log('Sending OTP to:', userEmail);
 
                 const otp = generateOTP();
                 console.log('Generated OTP:', otp);
@@ -295,7 +318,7 @@
                     if (secondsLeft <= 0) {
                         clearInterval(timer);
                         button.disabled = false;
-                        statusMessage.textContent = 'Logged in as: ' + userEmail;
+                        statusMessage.textContent = 'Ready to send OTP to: ' + userEmail;
                     }
                 }, 1000);
 
