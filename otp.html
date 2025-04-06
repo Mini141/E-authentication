@@ -229,24 +229,19 @@
 
         function generateOTP() {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            // Store OTP in session storage instead of local storage for better security
+            // Store OTP in both localStorage and sessionStorage for redundancy
+            localStorage.setItem('currentOTP', otp);
             sessionStorage.setItem('currentOTP', otp);
-            // Also store the OTP in URL for mobile access
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('sentOTP', otp);
-            window.history.replaceState({}, '', currentUrl);
             return otp;
         }
 
         function verifyOTP() {
             const enteredOTP = document.getElementById('otpInput').value;
-            // Get OTP from URL if on mobile, otherwise from session storage
-            const urlParams = new URLSearchParams(window.location.search);
-            const storedOTP = urlParams.get('sentOTP') || sessionStorage.getItem('currentOTP');
+            // Try getting OTP from multiple storage locations
+            const storedOTP = localStorage.getItem('currentOTP') || sessionStorage.getItem('currentOTP');
             const statusMessage = document.getElementById('statusMessage');
 
-            console.log('Entered OTP:', enteredOTP);
-            console.log('Stored OTP:', storedOTP);
+            console.log('Verifying OTP - Entered:', enteredOTP, 'Stored:', storedOTP);
 
             if (!storedOTP) {
                 statusMessage.textContent = 'Please generate a new OTP first';
@@ -258,11 +253,8 @@
                 statusMessage.textContent = 'OTP verified successfully!';
                 statusMessage.className = 'status-message success';
                 // Clear the OTP after successful verification
+                localStorage.removeItem('currentOTP');
                 sessionStorage.removeItem('currentOTP');
-                // Remove OTP from URL
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.delete('sentOTP');
-                window.history.replaceState({}, '', currentUrl);
                 // Redirect to success page or perform next action
                 setTimeout(() => {
                     window.location.href = 'success.html';
@@ -400,6 +392,13 @@
                 button.disabled = false;
             }
         }
+
+        // Add event listener for OTP input to automatically verify when 6 digits are entered
+        document.getElementById('otpInput').addEventListener('input', function(e) {
+            if (e.target.value.length === 6) {
+                verifyOTP();
+            }
+        });
     </script>
 </body>
 </html> 
