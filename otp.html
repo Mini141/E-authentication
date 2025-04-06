@@ -197,27 +197,12 @@
             <h3><i class="fas fa-info-circle"></i> How it works:</h3>
             <p>1. Click the "Send OTP" button below</p>
             <p>2. You'll receive a 6-digit code on your registered email</p>
-            <p>3. Enter this code to complete verification</p>
+            <p>3. Check your email for the OTP code</p>
         </div>
 
         <button class="send-otp-btn" onclick="sendOTP()">Send OTP</button>
         <div id="timer" class="timer"></div>
         <div id="statusMessage" class="status-message"></div>
-
-        <div id="otpInputContainer" style="margin-top: 20px; display: none;">
-            <input type="text" id="otpInput" 
-                style="padding: 10px; width: 200px; font-size: 1.2rem; text-align: center; 
-                letter-spacing: 5px; border: 2px solid #4CAF50; border-radius: 5px; 
-                margin-bottom: 10px;" 
-                maxlength="6" placeholder="Enter OTP"
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <button onclick="verifyOTP()" 
-                style="background-color: #4CAF50; color: white; padding: 12px 24px; 
-                border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; 
-                width: 100%; margin-top: 10px;">
-                Verify OTP
-            </button>
-        </div>
     </div>
 
     <script>
@@ -228,41 +213,7 @@
         })();
 
         function generateOTP() {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            // Store OTP in both localStorage and sessionStorage for redundancy
-            localStorage.setItem('currentOTP', otp);
-            sessionStorage.setItem('currentOTP', otp);
-            return otp;
-        }
-
-        function verifyOTP() {
-            const enteredOTP = document.getElementById('otpInput').value;
-            // Try getting OTP from multiple storage locations
-            const storedOTP = localStorage.getItem('currentOTP') || sessionStorage.getItem('currentOTP');
-            const statusMessage = document.getElementById('statusMessage');
-
-            console.log('Verifying OTP - Entered:', enteredOTP, 'Stored:', storedOTP);
-
-            if (!storedOTP) {
-                statusMessage.textContent = 'Please generate a new OTP first';
-                statusMessage.className = 'status-message error';
-                return;
-            }
-
-            if (enteredOTP === storedOTP) {
-                statusMessage.textContent = 'OTP verified successfully!';
-                statusMessage.className = 'status-message success';
-                // Clear the OTP after successful verification
-                localStorage.removeItem('currentOTP');
-                sessionStorage.removeItem('currentOTP');
-                // Redirect to success page or perform next action
-                setTimeout(() => {
-                    window.location.href = 'success.html';
-                }, 1500);
-            } else {
-                statusMessage.textContent = 'Invalid OTP. Please try again.';
-                statusMessage.className = 'status-message error';
-            }
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         function updateTimer(seconds) {
@@ -285,12 +236,6 @@
             const emailFromURL = urlParams.get('email');
             const statusMessage = document.getElementById('statusMessage');
             const sendOTPBtn = document.querySelector('.send-otp-btn');
-            const otpInputContainer = document.getElementById('otpInputContainer');
-
-            // Hide OTP input container on mobile devices
-            if (isMobileDevice()) {
-                otpInputContainer.style.display = 'none';
-            }
 
             if (emailFromURL) {
                 console.log('Email from URL:', emailFromURL);
@@ -317,7 +262,6 @@
         async function sendOTP() {
             const button = document.querySelector('.send-otp-btn');
             const statusMessage = document.getElementById('statusMessage');
-            const otpInputContainer = document.getElementById('otpInputContainer');
             
             try {
                 button.disabled = true;
@@ -361,11 +305,6 @@
                 console.log('Email sent successfully:', response);
                 statusMessage.textContent = 'OTP sent successfully to ' + userEmail;
                 statusMessage.className = 'status-message success';
-                
-                // Show OTP input field only on non-mobile devices
-                if (!isMobileDevice()) {
-                    otpInputContainer.style.display = 'block';
-                }
 
                 let secondsLeft = 60;
                 updateTimer(secondsLeft);
@@ -377,7 +316,7 @@
                     if (secondsLeft <= 0) {
                         clearInterval(timer);
                         button.disabled = false;
-                        statusMessage.textContent = 'Ready to send OTP to: ' + userEmail;
+                        statusMessage.textContent = 'Ready to send new OTP to: ' + userEmail;
                     }
                 }, 1000);
 
@@ -392,13 +331,6 @@
                 button.disabled = false;
             }
         }
-
-        // Add event listener for OTP input to automatically verify when 6 digits are entered
-        document.getElementById('otpInput').addEventListener('input', function(e) {
-            if (e.target.value.length === 6) {
-                verifyOTP();
-            }
-        });
     </script>
 </body>
 </html> 
