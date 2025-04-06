@@ -181,10 +181,7 @@
         })();
 
         function generateOTP() {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            // Store OTP in localStorage for verification
-            localStorage.setItem('currentOTP', otp);
-            return otp;
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         function updateTimer(seconds) {
@@ -255,14 +252,6 @@
                 const otp = generateOTP();
                 console.log('Generated OTP:', otp);
 
-                // Store email and OTP in localStorage
-                localStorage.setItem('otpEmail', userEmail);
-                
-                // Add OTP to URL parameters for mobile verification
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('otp', otp);
-                window.history.replaceState({}, '', currentUrl);
-
                 // Send email using EmailJS
                 const response = await emailjs.send(
                     'service_zlqtm7c',
@@ -279,11 +268,6 @@
                 console.log('Email sent successfully:', response);
                 statusMessage.textContent = 'OTP sent successfully to ' + userEmail;
                 statusMessage.className = 'status-message success';
-
-                // After successful OTP send, redirect to verification page
-                setTimeout(() => {
-                    window.location.href = `verify.html?email=${encodeURIComponent(userEmail)}&otp=${otp}`;
-                }, 2000);
 
                 let secondsLeft = 60;
                 updateTimer(secondsLeft);
